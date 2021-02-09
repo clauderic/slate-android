@@ -1,0 +1,16 @@
+{
+  "editor.formatOnSave": true,
+  "typescript.tsdk": "node_modules/typescript/lib",
+  "search.exclude": {
+    "**/dist": true,
+    "**/.cache": true,
+  },
+  "files.exclude": {
+    "**/dist": true,
+    "**/node_modules": true,
+    "**/.git": true,
+    "**/.cache": true,
+    "**/.DS_Store": true,
+    "**/coverage": true,
+  }
+}
