@@ -101,8 +101,8 @@ export type Diff = {
 export function diffText(prev: string, next: string): Diff | null {
   const offsets = getDiffOffsets(prev, next);
   if (offsets == null) return null;
-  const insertText = sliceText(next, offsets);
-  const removeText = sliceText(prev, offsets);
+  const insertText = stripZeroWidthSpace(sliceText(next, offsets));
+  const removeText = stripZeroWidthSpace(sliceText(prev, offsets));
   return {
     start: offsets.start,
     end: prev.length - offsets.end,
@@ -118,4 +118,8 @@ export interface InsertedText {
 
 export function getInsertedText(insertedText: InsertedText[]): string {
   return insertedText.reduce((acc, {text}) => `${acc}${text.insertText}`, '');
+}
+
+function stripZeroWidthSpace(string: string) {
+  return string.replace(/[\uFEFF]/g, '');
 }
