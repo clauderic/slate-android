@@ -4,6 +4,7 @@ import {ReactEditor} from 'slate-react';
 
 import type {Options} from './types'
 import {hasEditableTarget} from './utils';
+import {isLineBreakMutation} from './mutation-detection-utils';
 import {diffText, getInsertedText, InsertedText} from './diff-text';
 import {useTrackUserInput} from './use-track-user-input';
 import {useRestoreDOM} from './use-restore-dom';
@@ -29,38 +30,17 @@ export function useMutationObserver(editor: ReactEditor, {readOnly}: Options) {
     const removedNodes: Node[] = [];
     const insertedText: InsertedText[] = [];
     let shouldRestoreDOM = true;
-    let insertLineBreakMutation = false;
 
     mutations.forEach(mutation => {
       switch (mutation.type) {
         case 'childList': {
           if (mutation.addedNodes.length) {
-            if (mutation.target === nodeRef.current) {
-              // Detected line break insertion mutation
-              insertLineBreakMutation = true;
-              break;
-            }
-
             mutation.addedNodes.forEach(addedNode => {
-              if (
-                addedNodes.includes(addedNode) ||
-                addedNodes.some(node => node.contains(addedNode))
-              ) {
-                return;
-              }
-
               addedNodes.push(addedNode);
             });
           }
 
           mutation.removedNodes.forEach(removedNode => {
-            if (
-              removedNodes.includes(removedNode) ||
-              removedNodes.some(node => node.contains(removedNode))
-            ) {
-              return;
-            }
-
             removedNodes.push(removedNode);
           });
 
@@ -109,7 +89,7 @@ export function useMutationObserver(editor: ReactEditor, {readOnly}: Options) {
         // Selection was replaced by text
         Editor.insertText(editor, text);
       }
-    } else if (insertLineBreakMutation) {
+    } else if (isLineBreakMutation(editor, addedNodes)) {
       // Insert line break
       Editor.insertBreak(editor);
     } else if (removedNodes.length) {
