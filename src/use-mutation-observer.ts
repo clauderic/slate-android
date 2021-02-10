@@ -29,6 +29,9 @@ export function useMutationObserver(editor: ReactEditor, {readOnly}: Options) {
       return;
     }
 
+    // Only process the first set of mutations resulting from user input
+    resetUserInputTracking();
+
     const {selection} = editor;
     const addedNodes: Node[] = [];
     const removedNodes: Node[] = [];
