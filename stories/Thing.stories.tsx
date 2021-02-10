@@ -33,6 +33,18 @@ const meta: Meta = {
           ],
         },
         {
+          type: 'blockquote',
+          children: [
+            {
+              type: 'paragraph',
+              children: [
+                {text: 'This is a '},
+                {text: 'blockquote', bold: true},
+              ],
+            },
+          ],
+        },
+        {
           type: 'paragraph',
           children: [
             {

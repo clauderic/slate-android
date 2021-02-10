@@ -105,5 +105,9 @@ function renderElement(props: RenderElementProps) {
     return <Token {...props} />;
   }
 
+  if (props.element.type === 'blockquote') {
+    return <blockquote {...attributes}>{children}</blockquote>;
+  }
+
   return <p {...attributes}>{children}</p>;
 }

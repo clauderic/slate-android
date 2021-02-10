@@ -1,9 +1,13 @@
-import {FormEvent, useCallback, useEffect, useRef, useState} from 'react';
+import {useCallback, useEffect, useRef, useState} from 'react';
 import {Editor, Path, Range, Text, Transforms} from 'slate';
 import {ReactEditor} from 'slate-react';
 
-import type {Options} from './types'
-import {hasEditableTarget} from './utils';
+import {DOMNode, Options} from './types';
+import {
+  extractSlateFragment,
+  hasEditableTarget,
+  overrideHandler,
+} from './utils';
 import {isLineBreakMutation} from './mutation-detection-utils';
 import {diffText, getInsertedText, InsertedText} from './diff-text';
 import {useTrackUserInput} from './use-track-user-input';
@@ -33,8 +37,8 @@ export function useMutationObserver(editor: ReactEditor, {readOnly}: Options) {
     resetUserInputTracking();
 
     const {selection} = editor;
-    const addedNodes: Node[] = [];
-    const removedNodes: Node[] = [];
+    const addedNodes: DOMNode[] = [];
+    const removedNodes: DOMNode[] = [];
     const insertedText: InsertedText[] = [];
     let shouldRestoreDOM = true;
 
@@ -158,8 +162,10 @@ export function useMutationObserver(editor: ReactEditor, {readOnly}: Options) {
   const handlePaste = useCallback(
     (event: React.ClipboardEvent<HTMLDivElement>) => {
       if (!readOnly && hasEditableTarget(editor, event.target)) {
+        const data = extractSlateFragment(event.clipboardData);
+
         event.preventDefault();
-        ReactEditor.insertData(editor, event.clipboardData);
+        ReactEditor.insertData(editor, data);
       }
     },
     [readOnly]
@@ -175,8 +181,4 @@ export function useMutationObserver(editor: ReactEditor, {readOnly}: Options) {
       onCompositionEnd: overrideHandler,
     },
   };
-}
-
-function overrideHandler(event: FormEvent<any> | Event) {
-  event.stopPropagation();
 }
