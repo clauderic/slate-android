@@ -3,12 +3,7 @@ import {useCallback, useRef} from 'react';
 export function useTrackUserInput() {
   const userInputRef = useRef<boolean>(false);
   const animationFrameRef = useRef<number | null>(null);
-
-  const handleUserInput = useCallback((event: React.KeyboardEvent) => {
-    if (event.metaKey || event.ctrlKey) {
-      return;
-    }
-
+  const trackUserInput = useCallback(() => {
     // Distinguish user input from other DOM mutations
     if (userInputRef.current === false) {
       userInputRef.current = true;
@@ -23,9 +18,13 @@ export function useTrackUserInput() {
       });
     }
   }, []);
+  const resetUserInputTracking = useCallback(() => {
+    userInputRef.current = false;
+  }, []);
 
   return {
-    userInput: userInputRef,
-    attributes: {onKeyDown: handleUserInput},
+    hasUserInput: userInputRef,
+    trackUserInput,
+    resetUserInputTracking,
   };
 }

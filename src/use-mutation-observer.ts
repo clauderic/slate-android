@@ -18,10 +18,14 @@ const MUTATION_OBSERVER_CONFIG: MutationObserverInit = {
 
 export function useMutationObserver(editor: ReactEditor, {readOnly}: Options) {
   const nodeRef = useRef<HTMLElement>();
-  const {userInput, attributes: trackUserInputAttributes} = useTrackUserInput();
+  const {
+    hasUserInput,
+    trackUserInput,
+    resetUserInputTracking,
+  } = useTrackUserInput();
   const {restoreDOM, attributes: restoreDOMAttributes} = useRestoreDOM();
   const handleMutations = useCallback((mutations: MutationRecord[]) => {
-    if (!userInput.current || mutations.length === 0) {
+    if (!hasUserInput.current || mutations.length === 0) {
       return;
     }
 
@@ -128,21 +132,23 @@ export function useMutationObserver(editor: ReactEditor, {readOnly}: Options) {
       throw new Error('Editor root node is not present');
     }
 
-    const overrideBeforeInput = (event: Event) => {
+    const handleBeforeInput = (event: Event) => {
       if (event.target === nodeRef.current) {
+        // Prevent Slate's beforeInput listener from handling the event
         event.stopPropagation();
+        trackUserInput();
       }
     };
 
     // To-do: Need a better way to override Slate's handling of the DOM beforeinput event
-    window.addEventListener('beforeinput', overrideBeforeInput, true);
+    window.addEventListener('beforeinput', handleBeforeInput, true);
 
     // Attach mutation observer to the editor's root node
     mutationObserver.observe(nodeRef.current, MUTATION_OBSERVER_CONFIG);
 
     return () => {
       mutationObserver.disconnect();
-      window.removeEventListener('beforeinput', overrideBeforeInput);
+      window.removeEventListener('beforeinput', handleBeforeInput);
     };
   });
 
@@ -159,7 +165,6 @@ export function useMutationObserver(editor: ReactEditor, {readOnly}: Options) {
   return {
     attributes: {
       ...restoreDOMAttributes,
-      ...trackUserInputAttributes,
       onPaste: handlePaste,
       onBeforeInput: overrideHandler,
       onDOMBeforeInput: overrideHandler,
